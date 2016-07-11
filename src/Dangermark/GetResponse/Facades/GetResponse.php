@@ -1,6 +1,7 @@
 <?php
 namespace Dangermark\GetResponse\Facades;
 use Illuminate\Support\Facades\Facade;
+
 class GetResponse extends Facade
 {
     /**

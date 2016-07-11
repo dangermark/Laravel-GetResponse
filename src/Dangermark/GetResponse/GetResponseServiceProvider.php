@@ -1,7 +1,8 @@
 <?php
 namespace Dangermark\GetResponse;
 use Illuminate\Support\ServiceProvider;
-class GetReponseServiceProvider extends ServiceProvider
+
+class GetResponseServiceProvider extends ServiceProvider
 {
     protected $defer = true;
     public function boot()

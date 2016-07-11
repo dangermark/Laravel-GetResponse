@@ -48,7 +48,7 @@ And set your own API key:
 
 return [
 
-    'api_key' => env('CAMPAIGNMONITOR_API_KEY')
+    'api_key' => env('GETRESPONSE_API_KEY')
 
 ];
 ~~~

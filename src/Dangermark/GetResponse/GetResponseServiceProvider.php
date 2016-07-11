@@ -1,5 +1,7 @@
 <?php
+
 namespace Dangermark\GetResponse;
+
 use Illuminate\Support\ServiceProvider;
 
 class GetResponseServiceProvider extends ServiceProvider
@@ -15,7 +17,7 @@ class GetResponseServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__.'/../../config/getresponse.php', 'getresponse');
         $this->app['getresponse'] = $this->app->share(function ($app) {
-            return new CampaignMonitor($app);
+            return new GetResponse($app);
         });
     }
     public function provides()

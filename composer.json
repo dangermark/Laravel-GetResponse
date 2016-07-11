@@ -1,5 +1,5 @@
 {
-  "name": "dangermark/Laravel-GetResponse",
+  "name": "dangermark/laravel-getresponse",
   "description": "A Laravel 5 wrapper for the GetResponse API",
   "keywords": ["laravel", "laravel5", "getresponse"],
   "license": "MIT License",

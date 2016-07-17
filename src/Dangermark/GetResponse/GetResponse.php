@@ -350,7 +350,8 @@ class GetResponse extends Controller
             CURLOPT_TIMEOUT => $this->timeout,
             CURLOPT_HEADER => false,
             CURLOPT_USERAGENT => 'PHP GetResponse client 0.0.2',
-            CURLOPT_HTTPHEADER => array('X-Auth-Token: api-key ' . $this->api_key, 'Content-Type: application/json')
+            CURLOPT_HTTPHEADER => array('X-Auth-Token: api-key ' . $this->api_key, 'Content-Type: application/json'),
+            CURLOPT_SSL_VERIFYPEER => 0
         );
 
         if (!empty($this->enterprise_domain)) {

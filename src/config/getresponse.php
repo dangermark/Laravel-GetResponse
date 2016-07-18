@@ -2,6 +2,6 @@
 
 return [
 
-    'api_key' => env('null')
+    'api_key' => env('GETRESP_API_KEY', 'null')
 
 ];

@@ -257,7 +257,7 @@ class GetResponse
     /**
      * retrieve single custom field
      *
-     * @param string $cs_id obtained by API
+     * @param string $custom_id obtained by API
      * @return mixed
      */
     public function getCustomField($custom_id)

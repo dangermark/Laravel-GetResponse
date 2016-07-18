@@ -2,7 +2,7 @@
 
 namespace Dangermark\GetResponse;
 
-class GetResponse extends Controller
+class GetResponse
 {
     private $api_key;
     private $api_url = 'https://api.getresponse.com/v3';

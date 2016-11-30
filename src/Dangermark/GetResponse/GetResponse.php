@@ -2,18 +2,23 @@
 
 namespace Dangermark\GetResponse;
 
+use Illuminate\Support\Arr;
+
 class GetResponse
 {
-    private $api_key;
-    private $api_url = 'https://api.getresponse.com/v3';
-    private $timeout = 8;
+    /**
+     * Illuminate config repository instance.
+     *
+     * @var array
+     */
+    protected $config;
+
     public $http_status;
 
     /**
      * X-Domain header value if empty header will be not provided
      * @var string|null
      */
-    private $enterprise_domain = null;
 
     /**
      * X-APP-ID header value if empty header will be not provided
@@ -23,16 +28,13 @@ class GetResponse
 
     /**
      * Set api key and optionally API endpoint
-     * @param      $api_key
-     * @param null $api_url
+     * @param      $config
      */
-    public function __construct($api_key, $api_url = null)
+    public function __construct($config)
     {
-        $this->api_key = $api_key;
+        $this->config = $config;
 
-        if (!empty($api_url)) {
-            $this->api_url = $api_url;
-        }
+
     }
 
     /**
@@ -340,26 +342,26 @@ class GetResponse
         }
 
         $params = json_encode($params);
-        $url = $this->api_url . '/' . $api_method;
+        $url = $this->config('apiUrl') . '/' . $api_method;
 
         $options = array(
             CURLOPT_URL => $url,
             CURLOPT_ENCODING => 'gzip,deflate',
             CURLOPT_FRESH_CONNECT => 1,
             CURLOPT_RETURNTRANSFER => 1,
-            CURLOPT_TIMEOUT => $this->timeout,
+            CURLOPT_TIMEOUT => $this->config('timeout'),
             CURLOPT_HEADER => false,
             CURLOPT_USERAGENT => 'PHP GetResponse client 0.0.2',
-            CURLOPT_HTTPHEADER => array('X-Auth-Token: api-key ' . $this->api_key, 'Content-Type: application/json'),
+            CURLOPT_HTTPHEADER => array('X-Auth-Token: api-key ' . $this->config('apiKey'), 'Content-Type: application/json'),
             CURLOPT_SSL_VERIFYPEER => 0
         );
 
-        if (!empty($this->enterprise_domain)) {
-            $options[CURLOPT_HTTPHEADER][] = 'X-Domain: ' . $this->enterprise_domain;
+        if (!empty($this->config('enterpriseDomain'))) {
+            $options[CURLOPT_HTTPHEADER][] = 'X-Domain: ' . $this->config('enterpriseDomain');
         }
 
         if (!empty($this->app_id)) {
-            $options[CURLOPT_HTTPHEADER][] = 'X-APP-ID: ' . $this->app_id;
+            $options[CURLOPT_HTTPHEADER][] = 'X-APP-ID: ' . $this->config('appId');
         }
 
         if ($http_method == 'POST') {
@@ -394,5 +396,18 @@ class GetResponse
             }
         }
         return http_build_query($result);
+    }
+
+    /**
+     * Get configuration value.
+     *
+     * @param string $key
+     * @param mixed $default
+     *
+     * @return mixed
+     */
+    public function config($key, $default = null)
+    {
+        return Arr::get($this->config, $key, $default);
     }
 }

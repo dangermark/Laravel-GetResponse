@@ -70,7 +70,7 @@ class GetResponse
      */
     public function getCampaigns($name = null)
     {
-        return $this->call('campaigns' . $this->setParams(['query' => compact('name')]));
+        return $this->call('campaigns?' . $this->setParams(['query' => compact('name')]));
     }
 
     /**

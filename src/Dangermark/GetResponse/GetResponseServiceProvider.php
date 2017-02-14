@@ -16,7 +16,7 @@ class GetResponseServiceProvider extends ServiceProvider
     public function register()
     {
         $this->mergeConfigFrom(__DIR__.'/../../config/getresponse.php', 'getresponse');
-        $this->app['getresponse'] = $this->app->share(function ($app) {
+        $this->app['getresponse'] = $this->app->singleton('getresponse', function ($app) {
             return new GetResponse($app);
         });
     }

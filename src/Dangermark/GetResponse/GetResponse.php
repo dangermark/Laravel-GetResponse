@@ -360,7 +360,7 @@ class GetResponse
             $options[CURLOPT_HTTPHEADER][] = 'X-Domain: ' . $this->config('enterpriseDomain');
         }
 
-        if (!empty($this->app_id)) {
+        if (!empty($this->config('appId'))) {
             $options[CURLOPT_HTTPHEADER][] = 'X-APP-ID: ' . $this->config('appId');
         }
 

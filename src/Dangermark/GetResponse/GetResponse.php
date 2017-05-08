@@ -67,11 +67,12 @@ class GetResponse
 
     /**
      * Return all campaigns
+     * @param null $name - name to search
      * @return mixed
      */
-    public function getCampaigns()
+    public function getCampaigns($name = null)
     {
-        return $this->call('campaigns');
+        return $this->call('campaigns?' . $this->setParams(['query' => compact('name')]));
     }
 
     /**

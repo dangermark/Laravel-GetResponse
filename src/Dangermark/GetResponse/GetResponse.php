@@ -16,17 +16,6 @@ class GetResponse
     public $http_status;
 
     /**
-     * X-Domain header value if empty header will be not provided
-     * @var string|null
-     */
-
-    /**
-     * X-APP-ID header value if empty header will be not provided
-     * @var string|null
-     */
-    private $app_id = null;
-
-    /**
      * Set api key and optionally API endpoint
      * @param      $config
      */
@@ -356,14 +345,6 @@ class GetResponse
             CURLOPT_HTTPHEADER => array('X-Auth-Token: api-key ' . $this->config('apiKey'), 'Content-Type: application/json'),
             CURLOPT_SSL_VERIFYPEER => 0
         );
-
-        if (!empty($this->config('enterpriseDomain'))) {
-            $options[CURLOPT_HTTPHEADER][] = 'X-Domain: ' . $this->config('enterpriseDomain');
-        }
-
-        if (!empty($this->config('appId'))) {
-            $options[CURLOPT_HTTPHEADER][] = 'X-APP-ID: ' . $this->config('appId');
-        }
 
         if ($http_method == 'POST') {
             $options[CURLOPT_POST] = 1;

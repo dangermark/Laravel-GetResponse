@@ -6,25 +6,8 @@ use Illuminate\Support\Arr;
 
 class GetResponse
 {
-    /**
-     * Illuminate config repository instance.
-     *
-     * @var array
-     */
-    protected $config;
 
     public $http_status;
-
-    /**
-     * Set api key and optionally API endpoint
-     * @param      $config
-     */
-    public function __construct($config)
-    {
-        $this->config = $config;
-
-
-    }
 
     /**
      * We can modify internal settings
@@ -90,7 +73,7 @@ class GetResponse
      */
     public function getRSSNewsletters()
     {
-        $this->call('rss-newsletters', 'GET', null);
+        return $this->call('rss-newsletters', 'GET', null);
     }
 
     /**
@@ -332,19 +315,27 @@ class GetResponse
         }
 
         $params = json_encode($params);
-        $url = $this->config('apiUrl') . '/' . $api_method;
+        $url = config('getresponse.apiUrl') . '/' . $api_method;
 
         $options = array(
             CURLOPT_URL => $url,
             CURLOPT_ENCODING => 'gzip,deflate',
             CURLOPT_FRESH_CONNECT => 1,
             CURLOPT_RETURNTRANSFER => 1,
-            CURLOPT_TIMEOUT => $this->config('timeout'),
+            CURLOPT_TIMEOUT => config('getresponse.timeout'),
             CURLOPT_HEADER => false,
             CURLOPT_USERAGENT => 'PHP GetResponse client 0.0.2',
-            CURLOPT_HTTPHEADER => array('X-Auth-Token: api-key ' . $this->config('apiKey'), 'Content-Type: application/json'),
+            CURLOPT_HTTPHEADER => array('X-Auth-Token: api-key ' . config('getresponse.apiKey'), 'Content-Type: application/json'),
             CURLOPT_SSL_VERIFYPEER => 0
         );
+
+        if (!is_null(config('getresponse.enterpriseDomain'))) {
+            $options[CURLOPT_HTTPHEADER][] = 'X-Domain: ' . $this->config('enterpriseDomain');
+        }
+
+        if (!is_null(config('getresponse.appId'))) {
+            $options[CURLOPT_HTTPHEADER][] = 'X-APP-ID: ' . $this->config('appId');
+        }
 
         if ($http_method == 'POST') {
             $options[CURLOPT_POST] = 1;
@@ -378,18 +369,5 @@ class GetResponse
             }
         }
         return http_build_query($result);
-    }
-
-    /**
-     * Get configuration value.
-     *
-     * @param string $key
-     * @param mixed $default
-     *
-     * @return mixed
-     */
-    public function config($key, $default = null)
-    {
-        return Arr::get($this->config, $key, $default);
     }
 }

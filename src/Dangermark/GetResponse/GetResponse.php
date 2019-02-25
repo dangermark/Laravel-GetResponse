@@ -330,11 +330,11 @@ class GetResponse
         );
 
         if (!is_null(config('getresponse.enterpriseDomain'))) {
-            $options[CURLOPT_HTTPHEADER][] = 'X-Domain: ' . $this->config('enterpriseDomain');
+            $options[CURLOPT_HTTPHEADER][] = 'X-Domain: ' . config('getresponse.enterpriseDomain');
         }
 
         if (!is_null(config('getresponse.appId'))) {
-            $options[CURLOPT_HTTPHEADER][] = 'X-APP-ID: ' . $this->config('appId');
+            $options[CURLOPT_HTTPHEADER][] = 'X-APP-ID: ' . config('getresponse.appId');
         }
 
         if ($http_method == 'POST') {

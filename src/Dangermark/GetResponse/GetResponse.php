@@ -2,11 +2,10 @@
 
 namespace Dangermark\GetResponse;
 
-use Illuminate\Support\Arr;
+use Exception;
 
 class GetResponse
 {
-
     public $http_status;
 
     /**
@@ -20,17 +19,8 @@ class GetResponse
     }
 
     /**
-     * get account details
-     *
      * @return mixed
-     */
-    public function accounts()
-    {
-        return $this->call('accounts');
-    }
-
-    /**
-     * @return mixed
+     * @throws Exception
      */
     public function ping()
     {
@@ -38,9 +28,88 @@ class GetResponse
     }
 
     /**
+     * get account details
+     *
+     * @return mixed
+     * @throws Exception
+     */
+    public function accounts()
+    {
+        return $this->call('accounts');
+    }
+
+    /**
+     * Curl run request
+     *
+     * @param null   $api_method
+     * @param string $http_method
+     * @param array  $params
+     * @return mixed
+     * @throws Exception
+     */
+    private function call($api_method = null, $http_method = 'GET', $params = [])
+    {
+        if (empty($api_method)) {
+            return (object)[
+                'httpStatus'      => '400',
+                'code'            => '1010',
+                'codeDescription' => 'Error in external resources',
+                'message'         => 'Invalid api method'
+            ];
+        }
+
+        $params = json_encode($params);
+        $url    = config('getresponse.apiUrl') . '/' . $api_method;
+
+        $options = [
+            CURLOPT_URL            => $url,
+            CURLOPT_ENCODING       => 'gzip,deflate',
+            CURLOPT_FRESH_CONNECT  => 1,
+            CURLOPT_RETURNTRANSFER => 1,
+            CURLOPT_TIMEOUT        => config('getresponse.timeout'),
+            CURLOPT_HEADER         => false,
+            CURLOPT_USERAGENT      => 'PHP GetResponse client 0.0.2',
+            CURLOPT_HTTPHEADER     => [
+                'X-Auth-Token: api-key ' . config('getresponse.apiKey'),
+                'Content-Type: application/json'
+            ],
+            CURLOPT_SSL_VERIFYPEER => 0
+        ];
+
+        if (!is_null(config('getresponse.enterpriseDomain'))) {
+            $options[CURLOPT_HTTPHEADER][] = 'X-Domain: ' . config('getresponse.enterpriseDomain');
+        }
+
+        if (!is_null(config('getresponse.appId'))) {
+            $options[CURLOPT_HTTPHEADER][] = 'X-APP-ID: ' . config('getresponse.appId');
+        }
+
+        if ($http_method == 'POST') {
+            $options[CURLOPT_POST]       = 1;
+            $options[CURLOPT_POSTFIELDS] = $params;
+        } else {
+            if ($http_method == 'DELETE') {
+                $options[CURLOPT_CUSTOMREQUEST] = 'DELETE';
+            }
+        }
+
+        $curl = curl_init();
+        curl_setopt_array($curl, $options);
+
+        $response = json_decode(curl_exec($curl));
+
+        $this->http_status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+
+        curl_close($curl);
+
+        return (object)$response;
+    }
+
+    /**
      * Return all campaigns
      * @param null $name - name to search
      * @return mixed
+     * @throws Exception
      */
     public function getCampaigns($name = null)
     {
@@ -48,9 +117,27 @@ class GetResponse
     }
 
     /**
+     * @param array $params
+     *
+     * @return string
+     */
+    private function setParams($params = [])
+    {
+        $result = [];
+        if (is_array($params)) {
+            foreach ($params as $key => $value) {
+                $result[$key] = $value;
+            }
+        }
+
+        return http_build_query($result);
+    }
+
+    /**
      * get single campaign
      * @param string $campaign_id retrieved using API
      * @return mixed
+     * @throws Exception
      */
     public function getCampaign($campaign_id)
     {
@@ -61,6 +148,7 @@ class GetResponse
      * adding campaign
      * @param $params
      * @return mixed
+     * @throws Exception
      */
     public function createCampaign($params)
     {
@@ -70,6 +158,7 @@ class GetResponse
     /**
      * list all RSS newsletters
      * @return mixed
+     * @throws Exception
      */
     public function getRSSNewsletters()
     {
@@ -81,6 +170,7 @@ class GetResponse
      *
      * @param $params
      * @return mixed
+     * @throws Exception
      */
     public function sendNewsletter($params)
     {
@@ -90,6 +180,7 @@ class GetResponse
     /**
      * @param $params
      * @return mixed
+     * @throws Exception
      */
     public function sendDraftNewsletter($params)
     {
@@ -101,6 +192,7 @@ class GetResponse
      *
      * @param $params
      * @return mixed
+     * @throws Exception
      */
     public function addContact($params)
     {
@@ -112,18 +204,19 @@ class GetResponse
      *
      * @param string $contact_id - contact id obtained by API
      * @return mixed
+     * @throws Exception
      */
     public function getContact($contact_id)
     {
         return $this->call('contacts/' . $contact_id);
     }
 
-
     /**
      * search contacts
      *
      * @param $params
      * @return mixed
+     * @throws Exception
      */
     public function searchContacts($params = null)
     {
@@ -135,6 +228,7 @@ class GetResponse
      *
      * @param $id
      * @return mixed
+     * @throws Exception
      */
     public function getContactsSearch($id)
     {
@@ -146,6 +240,7 @@ class GetResponse
      *
      * @param $params
      * @return mixed
+     * @throws Exception
      */
     public function addContactsSearch($params)
     {
@@ -157,6 +252,7 @@ class GetResponse
      *
      * @param $id
      * @return mixed
+     * @throws Exception
      */
     public function deleteContactsSearch($id)
     {
@@ -167,6 +263,7 @@ class GetResponse
      * get contact activities
      * @param $contact_id
      * @return mixed
+     * @throws Exception
      */
     public function getContactActivities($contact_id)
     {
@@ -178,8 +275,9 @@ class GetResponse
      * @param array $params
      *
      * @return mixed
+     * @throws Exception
      */
-    public function getContacts($params = array())
+    public function getContacts($params = [])
     {
         return $this->call('contacts?' . $this->setParams($params));
     }
@@ -190,8 +288,9 @@ class GetResponse
      * @param array $params
      *
      * @return mixed
+     * @throws Exception
      */
-    public function updateContact($contact_id, $params = array())
+    public function updateContact($contact_id, $params = [])
     {
         return $this->call('contacts/' . $contact_id, 'POST', $params);
     }
@@ -201,6 +300,7 @@ class GetResponse
      *
      * @param string $contact_id - obtained by API
      * @return mixed
+     * @throws Exception
      */
     public function deleteContact($contact_id)
     {
@@ -212,8 +312,9 @@ class GetResponse
      * @param array $params
      *
      * @return mixed
+     * @throws Exception
      */
-    public function getCustomFields($params = array())
+    public function getCustomFields($params = [])
     {
         return $this->call('custom-fields?' . $this->setParams($params));
     }
@@ -223,6 +324,7 @@ class GetResponse
      *
      * @param $params
      * @return mixed
+     * @throws Exception
      */
     public function setCustomField($params)
     {
@@ -234,6 +336,7 @@ class GetResponse
      *
      * @param string $custom_id obtained by API
      * @return mixed
+     * @throws Exception
      */
     public function getCustomField($custom_id)
     {
@@ -244,6 +347,7 @@ class GetResponse
      * retrieving billing information
      *
      * @return mixed
+     * @throws Exception
      */
     public function getBillingInfo()
     {
@@ -255,6 +359,7 @@ class GetResponse
      *
      * @param int $w_id
      * @return mixed
+     * @throws Exception
      */
     public function getWebForm($w_id)
     {
@@ -266,8 +371,9 @@ class GetResponse
      * @param array $params
      *
      * @return mixed
+     * @throws Exception
      */
-    public function getWebForms($params = array())
+    public function getWebForms($params = [])
     {
         return $this->call('webforms?' . $this->setParams($params));
     }
@@ -277,6 +383,7 @@ class GetResponse
      *
      * @param int $form_id
      * @return mixed
+     * @throws Exception
      */
     public function getForm($form_id)
     {
@@ -288,86 +395,10 @@ class GetResponse
      * @param array $params
      *
      * @return mixed
-     */
-    public function getForms($params = array())
-    {
-        return $this->call('forms?' . $this->setParams($params));
-    }
-
-    /**
-     * Curl run request
-     *
-     * @param null $api_method
-     * @param string $http_method
-     * @param array $params
-     * @return mixed
      * @throws Exception
      */
-    private function call($api_method = null, $http_method = 'GET', $params = array())
+    public function getForms($params = [])
     {
-        if (empty($api_method)) {
-            return (object)array(
-                'httpStatus' => '400',
-                'code' => '1010',
-                'codeDescription' => 'Error in external resources',
-                'message' => 'Invalid api method'
-            );
-        }
-
-        $params = json_encode($params);
-        $url = config('getresponse.apiUrl') . '/' . $api_method;
-
-        $options = array(
-            CURLOPT_URL => $url,
-            CURLOPT_ENCODING => 'gzip,deflate',
-            CURLOPT_FRESH_CONNECT => 1,
-            CURLOPT_RETURNTRANSFER => 1,
-            CURLOPT_TIMEOUT => config('getresponse.timeout'),
-            CURLOPT_HEADER => false,
-            CURLOPT_USERAGENT => 'PHP GetResponse client 0.0.2',
-            CURLOPT_HTTPHEADER => array('X-Auth-Token: api-key ' . config('getresponse.apiKey'), 'Content-Type: application/json'),
-            CURLOPT_SSL_VERIFYPEER => 0
-        );
-
-        if (!is_null(config('getresponse.enterpriseDomain'))) {
-            $options[CURLOPT_HTTPHEADER][] = 'X-Domain: ' . config('getresponse.enterpriseDomain');
-        }
-
-        if (!is_null(config('getresponse.appId'))) {
-            $options[CURLOPT_HTTPHEADER][] = 'X-APP-ID: ' . config('getresponse.appId');
-        }
-
-        if ($http_method == 'POST') {
-            $options[CURLOPT_POST] = 1;
-            $options[CURLOPT_POSTFIELDS] = $params;
-        } else if ($http_method == 'DELETE') {
-            $options[CURLOPT_CUSTOMREQUEST] = 'DELETE';
-        }
-
-        $curl = curl_init();
-        curl_setopt_array($curl, $options);
-
-        $response = json_decode(curl_exec($curl));
-
-        $this->http_status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-
-        curl_close($curl);
-        return (object)$response;
-    }
-
-    /**
-     * @param array $params
-     *
-     * @return string
-     */
-    private function setParams($params = array())
-    {
-        $result = array();
-        if (is_array($params)) {
-            foreach ($params as $key => $value) {
-                $result[$key] = $value;
-            }
-        }
-        return http_build_query($result);
+        return $this->call('forms?' . $this->setParams($params));
     }
 }
